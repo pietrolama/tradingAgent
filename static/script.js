@@ -120,9 +120,15 @@ window.addEventListener("DOMContentLoaded", () => {
   async function startSimulation() {
     const investment = parseFloat(document.getElementById("investment").value);
     const coin = document.getElementById("coin").value;
+    const intervalMinutes = parseFloat(document.getElementById("interval").value);
 
     if (isNaN(investment) || investment <= 0) {
       alert("Inserisci un investimento valido.");
+      return;
+    }
+
+    if (isNaN(intervalMinutes) || intervalMinutes <= 0) {
+      alert("Intervallo non valido.");
       return;
     }
 
@@ -149,13 +155,13 @@ window.addEventListener("DOMContentLoaded", () => {
       analyzeNow(); // Primo ciclo subito
 
       if (countdownInterval) clearInterval(countdownInterval);
-      countdown = 300;
+      countdown = Math.round(intervalMinutes * 60);
       countdownInterval = setInterval(() => {
         countdown--;
         document.getElementById("timer").textContent = `Prossima analisi in ${countdown} secondi`;
         if (countdown <= 0) {
           analyzeNow();
-          countdown = 300;
+          countdown = Math.round(intervalMinutes * 60);
         }
       }, 1000);
     } catch (error) {
@@ -166,7 +172,8 @@ window.addEventListener("DOMContentLoaded", () => {
   function resetSimulation() {
     if (countdownInterval) clearInterval(countdownInterval);
     countdownInterval = null;
-    countdown = 300;
+    const intervalMinutes = parseFloat(document.getElementById("interval").value);
+    countdown = Math.round((isNaN(intervalMinutes) || intervalMinutes <= 0 ? 5 : intervalMinutes) * 60);
 
     initialBuyPrice = null;
     currentInvestment = null;
