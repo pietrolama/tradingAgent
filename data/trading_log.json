@@ -1,0 +1,92 @@
+[
+  {
+    "coin": "bitcoin",
+    "price": 87612,
+    "change_24h": 2.04,
+    "signal": "sell",
+    "profit_loss": null,
+    "comment": "📈 Forte crescita: potenziale momento per vendere.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:20:19.670283"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87612,
+    "change_24h": 2.04,
+    "signal": "sell",
+    "profit_loss": null,
+    "comment": "📈 Forte crescita: potenziale momento per vendere.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:20:20.118931"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87458,
+    "change_24h": 1.9,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:24:38.065203"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87458,
+    "change_24h": 1.9,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:24:38.371888"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87323,
+    "change_24h": 1.83,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:28:24.470109"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87323,
+    "change_24h": 1.83,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:28:24.881449"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87203,
+    "change_24h": 1.69,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:30:41.393755"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87203,
+    "change_24h": 1.69,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:30:41.646690"
+  },
+  {
+    "coin": "bitcoin",
+    "price": 87124,
+    "change_24h": 1.6,
+    "signal": "hold",
+    "profit_loss": null,
+    "comment": "🔍 Osservazione consigliata. Attendere segnali più chiari.",
+    "meta": "✅ Live data da CoinGecko",
+    "timestamp": "2025-06-23T18:32:26.315148"
+  }
+]
