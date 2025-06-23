@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from threading import Thread, Event
 import time
 from datetime import datetime
@@ -6,6 +6,10 @@ from modules.trading_agent import analyze_coin
 from modules.logger import log_result
 
 app = Flask(__name__)  # <- DEFINISCI L’ISTANZA QUI PRIMA DEGLI ENDPOINT
+
+@app.route("/")
+def index():
+    return send_from_directory("static", "index.html")
 
 scheduler_thread = None
 stop_event = Event()
@@ -18,6 +22,16 @@ def scheduler_loop(coin_id, interval_minutes, stop_event):
         log_result(result)
         stop_event.wait(interval_minutes * 60)
     print("Scheduler fermato")
+
+@app.route("/api/coin", methods=["POST"])
+def api_coin():
+    data = request.get_json() or {}
+    coin_id = data.get("coin_id", "bitcoin")
+    prezzo_acquisto = data.get("prezzo_acquisto", 0)
+    investimento = data.get("investimento", 0)
+    result = analyze_coin(coin_id, prezzo_acquisto, investimento)
+    log_result(result)
+    return jsonify(result)
 
 @app.route('/api/scheduler/start', methods=['POST'])
 def start_scheduler():
