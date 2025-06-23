@@ -14,22 +14,38 @@ class TradingSimulator:
 
     def start(self):
         if self.started:
-            return
+            return {
+                "status": "already_started",
+                "asset_qty": self.asset_qty,
+                "cash": self.cash,
+                "history": self.history,
+            }
+
         info = analyze_coin(self.coin_id, 0, 0)
-        self.prezzo_acquisto = info.get('price')
+        self.prezzo_acquisto = info.get("price")
+
         if self.prezzo_acquisto:
             self.asset_qty = self.cash / self.prezzo_acquisto
             self.cash = 0.0
-            self.history.append({
-                "timestamp": datetime.now().isoformat(),
-                "action": "buy",
-                "price": self.prezzo_acquisto,
-                "cash": self.cash,
-                "asset_qty": self.asset_qty,
-                "total_value": self.asset_qty * self.prezzo_acquisto,
-                "profit": 0.0
-            })
+            self.history.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "action": "buy",
+                    "price": self.prezzo_acquisto,
+                    "cash": self.cash,
+                    "asset_qty": self.asset_qty,
+                    "total_value": self.asset_qty * self.prezzo_acquisto,
+                    "profit": 0.0,
+                }
+            )
             self.started = True
+
+        return {
+            "status": "started",
+            "asset_qty": self.asset_qty,
+            "cash": self.cash,
+            "history": self.history,
+        }
 
     def simulate_step(self):
         if not self.started:
@@ -74,5 +90,7 @@ class TradingSimulator:
             "signal": segnale,
             "total_value": total_value,
             "profit": profit,
-            "history": self.history
+            "cash": self.cash,
+            "asset_qty": self.asset_qty,
+            "history": self.history,
         }

@@ -1,8 +1,6 @@
 let priceChart;
 let countdown = 300;
 let countdownInterval;
-let initialBuyPrice = null;
-let currentInvestment = null;
 let currentCoin = null;
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -44,47 +42,37 @@ window.addEventListener("DOMContentLoaded", () => {
     return { labels, data };
   }
 
-  async function analyzeNow() {
-    if (!initialBuyPrice || !currentInvestment || !currentCoin) {
-      updateStatus("Simulazione non avviata correttamente.");
+  async function simulateNow() {
+    if (!currentCoin) {
+      updateStatus(null, "Simulazione non avviata correttamente.");
       return;
     }
 
     try {
-      const res = await fetch("/api/coin", {
+      const res = await fetch("/api/sim/step", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          coin_id: currentCoin,
-          prezzo_acquisto: initialBuyPrice,
-          investimento: currentInvestment
-        })
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const data = await res.json();
 
-      let coinName = (typeof data.coin === "string") ? data.coin : JSON.stringify(data.coin);
-      coinName = coinName.toUpperCase();
+      let coinName = currentCoin.toUpperCase();
 
       const price = (typeof data.price === "number") ? data.price.toFixed(2) : "N/A";
-      const change24h = (typeof data.change_24h === "number") ? data.change_24h.toFixed(2) : "N/A";
       const signal = (typeof data.signal === "string") ? data.signal.toUpperCase() : "N/A";
       const signalColor = data.signal === "buy" ? "green" : data.signal === "sell" ? "red" : "#ccc";
-      const comment = data.comment || "";
-      const currentValue = (typeof data.current_value === "number") ? data.current_value.toFixed(2) : "N/A";
-      const profitLoss = (typeof data.profit_loss === "number") ? data.profit_loss.toFixed(2) : "N/A";
+      const currentValue = (typeof data.total_value === "number") ? data.total_value.toFixed(2) : "N/A";
+      const profitLoss = (typeof data.profit === "number") ? data.profit.toFixed(2) : "N/A";
 
       document.getElementById("result").innerHTML = `
         <p><strong>${coinName}</strong> — Prezzo attuale: €${price}</p>
-        <p>Variazione 24h: ${change24h}%</p>
         <p>Segnale: <span style="color: ${signalColor}">${signal}</span></p>
-        <p>${comment}</p>
-        <p>Valore attuale investimento: €${currentValue}</p>
+        <p>Valore portafoglio: €${currentValue}</p>
         <p>Profitto stimato: €${profitLoss}</p>
       `;
 
-      // Aggiorna grafico
+      // Aggiorna grafico (mock dati fittizi)
       const history = await fetchPriceHistory(currentCoin);
       if (priceChart) {
         priceChart.data.labels = history.labels;
@@ -95,25 +83,50 @@ window.addEventListener("DOMContentLoaded", () => {
       }
 
       // Aggiorna dati di status
-      updateStatus(`Ultima analisi: segnale ${signal}, prezzo €${price}`);
+      updateStatus(data, `Ultima analisi: segnale ${signal}, prezzo €${price}`);
+      renderHistory(data.history);
 
     } catch (error) {
       console.error("Errore nell'analisi:", error);
-      updateStatus("Errore nel recupero dati. Riprova più tardi.");
+      updateStatus(null, "Errore nel recupero dati. Riprova più tardi.");
     }
   }
 
-  function updateStatus(text) {
+  function updateStatus(data, text) {
     const statusEl = document.getElementById("status");
-    if (statusEl) {
-      statusEl.querySelector("#cash").textContent = currentInvestment ? currentInvestment.toFixed(2) : "-";
-      // Qui puoi aggiungere altre info aggiornate come asset, profitto ecc.
-      statusEl.querySelector("#profit").textContent = "-"; // da calcolare se vuoi
+    if (statusEl && data) {
+      if (typeof data.cash === "number") statusEl.querySelector("#cash").textContent = data.cash.toFixed(2);
+      if (typeof data.asset_qty === "number") statusEl.querySelector("#asset_qty").textContent = data.asset_qty.toFixed(6);
+      if (typeof data.total_value === "number") statusEl.querySelector("#total_value").textContent = data.total_value.toFixed(2);
+      if (typeof data.profit === "number") statusEl.querySelector("#profit").textContent = data.profit.toFixed(2);
     }
 
     const timerEl = document.getElementById("timer");
     if (timerEl) {
       timerEl.textContent = text;
+    }
+  }
+
+  function renderHistory(history) {
+    const tbody = document.getElementById("historyTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    if (!history || history.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='7'>Nessuna operazione ancora effettuata.</td></tr>";
+      return;
+    }
+    for (const row of history) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.timestamp}</td>
+        <td>${row.action}</td>
+        <td>${row.price.toFixed(2)}</td>
+        <td>${row.cash.toFixed(2)}</td>
+        <td>${row.asset_qty.toFixed(6)}</td>
+        <td>${row.total_value.toFixed(2)}</td>
+        <td>${row.profit.toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
     }
   }
 
@@ -133,26 +146,18 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      // Prendo il prezzo di mercato attuale per il buy iniziale
-      const res = await fetch("/api/coin", {
+      const res = await fetch("/api/sim/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coin_id: coin, prezzo_acquisto: 0, investimento: investment })
+        body: JSON.stringify({ coin_id: coin, investimento: investment })
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const data = await res.json();
-      initialBuyPrice = data.price;
-      currentInvestment = investment;
       currentCoin = coin;
-
-      if (!initialBuyPrice) {
-        alert("Impossibile recuperare il prezzo di acquisto.");
-        return;
-      }
-
-      updateStatus("Simulazione avviata con prezzo di acquisto: €" + initialBuyPrice.toFixed(2));
-      analyzeNow(); // Primo ciclo subito
+      updateStatus(data, "Simulazione avviata");
+      renderHistory(data.history);
+      simulateNow(); // Primo ciclo subito
 
       if (countdownInterval) clearInterval(countdownInterval);
       countdown = Math.round(intervalMinutes * 60);
@@ -160,7 +165,7 @@ window.addEventListener("DOMContentLoaded", () => {
         countdown--;
         document.getElementById("timer").textContent = `Prossima analisi in ${countdown} secondi`;
         if (countdown <= 0) {
-          analyzeNow();
+          simulateNow();
           countdown = Math.round(intervalMinutes * 60);
         }
       }, 1000);
@@ -175,9 +180,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const intervalMinutes = parseFloat(document.getElementById("interval").value);
     countdown = Math.round((isNaN(intervalMinutes) || intervalMinutes <= 0 ? 5 : intervalMinutes) * 60);
 
-    initialBuyPrice = null;
-    currentInvestment = null;
     currentCoin = null;
+    fetch("/api/sim/reset", { method: "POST" }).catch(() => {});
 
     document.getElementById("timer").textContent = "";
     document.getElementById("result").innerHTML = "";
@@ -185,6 +189,9 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("asset_qty").textContent = "-";
     document.getElementById("total_value").textContent = "-";
     document.getElementById("profit").textContent = "-";
+
+    const tbody = document.getElementById("historyTableBody");
+    if (tbody) tbody.innerHTML = "<tr><td colspan='7'>Nessuna operazione ancora effettuata.</td></tr>";
 
     if (priceChart) {
       priceChart.destroy();

@@ -3,6 +3,7 @@ from threading import Thread, Event
 import time
 from datetime import datetime
 from modules.trading_agent import analyze_coin
+from modules.trading_simulator import TradingSimulator
 from modules.logger import log_result
 
 app = Flask(__name__)  # <- DEFINISCI L’ISTANZA QUI PRIMA DEGLI ENDPOINT
@@ -13,6 +14,7 @@ def index():
 
 scheduler_thread = None
 stop_event = Event()
+simulator = None
 
 def scheduler_loop(coin_id, interval_minutes, stop_event):
     print(f"🕒 Scheduler partito per {coin_id.upper()} ogni {interval_minutes} minuti")
@@ -22,6 +24,46 @@ def scheduler_loop(coin_id, interval_minutes, stop_event):
         log_result(result)
         stop_event.wait(interval_minutes * 60)
     print("Scheduler fermato")
+
+
+@app.route("/api/sim/start", methods=["POST"])
+def sim_start():
+    """Inizia una nuova simulazione di trading."""
+    global simulator
+    data = request.get_json() or {}
+    coin_id = data.get("coin_id", "bitcoin")
+    investimento = data.get("investimento", 0)
+
+    try:
+        investimento = float(investimento)
+    except (ValueError, TypeError):
+        investimento = 0
+
+    if investimento <= 0:
+        return jsonify({"error": "investimento non valido"}), 400
+
+    simulator = TradingSimulator(coin_id, investimento)
+    start_info = simulator.start()
+    return jsonify(start_info)
+
+
+@app.route("/api/sim/step", methods=["POST"])
+def sim_step():
+    """Esegue un ciclo della simulazione."""
+    global simulator
+    if not simulator or not simulator.started:
+        return jsonify({"error": "simulazione non avviata"}), 400
+
+    result = simulator.simulate_step()
+    return jsonify(result)
+
+
+@app.route("/api/sim/reset", methods=["POST"])
+def sim_reset():
+    """Ferma e azzera la simulazione."""
+    global simulator
+    simulator = None
+    return jsonify({"status": "reset"})
 
 @app.route("/api/coin", methods=["POST"])
 def api_coin():
